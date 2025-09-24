@@ -817,17 +817,80 @@ class PreMandateDecisionView(APIView):
                         decision='approve',
                         payload=data,
                         human_actor=data.get('approved_by', 'unknown'),
-                        notes=f'Pre-mandate approved for invoice {invoice_id}. SF team will now call status update API.'
+                        notes=f'Pre-mandate approved for invoice {invoice_id}. Automatically triggering A2A/AP2 processing.'
                     )
                     
-                    return Response({
-                        'success': True,
-                        'invoice_id': invoice_id,
-                        'status': 'pre_mandate_approved',
-                        'message': 'Pre-mandate approved successfully. Salesforce updated. SF team should now call status update API.',
-                        'pre_approved': True,
-                        'next_step': 'sf_team_calls_status_update_api'
-                    })
+                    # Automatically trigger A2A/AP2 processing internally
+                    logger.info(f"Pre-mandate approved for invoice {invoice_id}. Automatically triggering A2A/AP2 processing.")
+                    
+                    # Prepare data for A2A/AP2 processing
+                    validated_data = {
+                        'invoice_id': invoice.invoice_id,
+                        'amount': invoice.amount_cents / 100,
+                        'currency': invoice.currency,
+                        'payment_method': invoice.payment_method,
+                        'customer_name': invoice.customer_name,
+                        'customer_id': getattr(invoice, 'customer_id', f'CUST-{invoice.invoice_id}'),
+                        'mandate_id': getattr(invoice, 'mandate_id', f'MANDATE-{invoice.invoice_id}'),
+                        'approved_by': data.get('approved_by', 'salesforce@company.com')
+                    }
+                    
+                    # Process collection using A2A and AP2 protocols
+                    from .a2a_ap2_integration import process_collection_with_a2a_ap2
+                    a2a_ap2_result = process_collection_with_a2a_ap2(validated_data)
+                    
+                    if a2a_ap2_result['success']:
+                        # Update invoice status based on A2A/AP2 result
+                        invoice.status = 'completed' if a2a_ap2_result['status'] == 'settled' else 'processing'
+                        invoice.save()
+                        
+                        # Log A2A/AP2 success
+                        AgentAction.objects.create(
+                            invoice=invoice,
+                            action_type='payment_processed_via_pre_mandate_approval',
+                            decision='auto_process',
+                            payload=a2a_ap2_result,
+                            system_actor='pre_mandate_approval',
+                            notes=f'Payment processed via A2A conversation {a2a_ap2_result["conversation_id"]} and AP2 request {a2a_ap2_result["ap2_request_id"]} after pre-mandate approval'
+                        )
+                        
+                        return Response({
+                            'success': True,
+                            'invoice_id': invoice_id,
+                            'status': a2a_ap2_result['status'],
+                            'message': f'Pre-mandate approved and payment processed successfully via A2A/AP2. {a2a_ap2_result["message"]}',
+                            'pre_approved': True,
+                            'a2a_ap2_processing': True,
+                            'conversation_id': a2a_ap2_result['conversation_id'],
+                            'ap2_request_id': a2a_ap2_result['ap2_request_id'],
+                            'transaction_id': a2a_ap2_result['transaction_id']
+                        })
+                    else:
+                        # A2A/AP2 processing failed
+                        invoice.status = 'failed'
+                        invoice.save()
+                        
+                        AgentAction.objects.create(
+                            invoice=invoice,
+                            action_type='payment_processing_failed_via_pre_mandate_approval',
+                            decision='auto_process',
+                            payload=a2a_ap2_result,
+                            system_actor='pre_mandate_approval',
+                            notes=f'Payment processing failed for invoice {invoice_id} after pre-mandate approval: {a2a_ap2_result.get("message", "Unknown error")}'
+                        )
+                        
+                        return Response({
+                            'success': False,
+                            'invoice_id': invoice_id,
+                            'status': 'failed',
+                            'message': f'Pre-mandate approved but payment processing failed: {a2a_ap2_result.get("message", "Unknown error")}',
+                            'pre_approved': True,
+                            'a2a_ap2_processing': True,
+                            'error': a2a_ap2_result.get('message', 'Payment processing failed'),
+                            'conversation_id': a2a_ap2_result.get('conversation_id'),
+                            'ap2_request_id': a2a_ap2_result.get('ap2_request_id'),
+                            'transaction_id': a2a_ap2_result.get('transaction_id')
+                        })
                 else:
                     return Response({
                         'success': False,
