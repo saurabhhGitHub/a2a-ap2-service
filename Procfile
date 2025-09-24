@@ -1,0 +1,1 @@
+web: gunicorn collections_agent.wsgi:application

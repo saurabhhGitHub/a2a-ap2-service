@@ -1,0 +1,725 @@
+{
+	"info": {
+		"_postman_id": "collections-agent-api",
+		"name": "Collections Agent API",
+		"description": "Complete API collection for Collections Agent Backend - Slack-First Collections & Payments Agent",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "key",
+				"value": "X-API-Key",
+				"type": "string"
+			},
+			{
+				"key": "value",
+				"value": "test-api-key",
+				"type": "string"
+			},
+			{
+				"key": "in",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "api_key",
+			"value": "test-api-key",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Health & Status",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/health/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"health",
+								""
+							]
+						},
+						"description": "Check the health status of the Collections Agent backend"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Integration APIs",
+			"item": [
+				{
+					"name": "Get Overdue Invoices",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/integration/overdue-invoices/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"integration",
+								"overdue-invoices",
+								""
+							]
+						},
+						"description": "Get list of overdue invoices for Slack display"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Invoice Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/integration/status/INV-2024-002/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"integration",
+								"status",
+								"INV-2024-002",
+								""
+							]
+						},
+						"description": "Get detailed status of a specific invoice"
+					},
+					"response": []
+				},
+				{
+					"name": "Slack Approval",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"invoice_id\": \"INV-2024-002\",\n    \"decision\": \"approve\",\n    \"user_id\": \"U1234567890\",\n    \"user_name\": \"john.doe\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/integration/slack/approval/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"integration",
+								"slack",
+								"approval",
+								""
+							]
+						},
+						"description": "Process approval decision from Slack user"
+					},
+					"response": []
+				},
+				{
+					"name": "Salesforce Webhook",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"invoice_id\": \"INV-2024-777\",\n    \"sf_invoice_id\": \"SF-INV-777\",\n    \"amount\": 7500.00,\n    \"currency\": \"USD\",\n    \"customer_id\": \"CUST-777\",\n    \"customer_name\": \"Global Tech Corp\",\n    \"mandate_id\": \"MANDATE-777\",\n    \"payment_method\": \"ACH\",\n    \"due_date\": \"2024-09-15T00:00:00Z\",\n    \"approved_by\": \"salesforce@company.com\",\n    \"idempotency_key\": \"SF-INV-777-2024-09-21\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/integration/salesforce/webhook/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"integration",
+								"salesforce",
+								"webhook",
+								""
+							]
+						},
+						"description": "Receive collection request from Salesforce Agentforce"
+					},
+					"response": []
+				},
+				{
+					"name": "Generic Status Update Webhook",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"invoice_id\": \"INV-2024-222\",\n    \"status\": \"completed\",\n    \"source_system\": \"stripe\",\n    \"external_transaction_id\": \"TXN-222\",\n    \"notes\": \"Payment completed\",\n    \"metadata\": {\n        \"amount_settled_cents\": 1200000\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/integration/webhook/status-update/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"integration",
+								"webhook",
+								"status-update",
+								""
+							]
+						},
+						"description": "Receive status updates from external systems"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Collections APIs",
+			"item": [
+				{
+					"name": "Initiate Collection",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"invoice_id\": \"INV-2024-222\",\n    \"sf_invoice_id\": \"SF-INV-222\",\n    \"amount\": 12000.00,\n    \"currency\": \"USD\",\n    \"customer_id\": \"CUST-222\",\n    \"customer_name\": \"Test Company\",\n    \"mandate_id\": \"MANDATE-222\",\n    \"payment_method\": \"ACH\",\n    \"due_date\": \"2024-09-10T00:00:00Z\",\n    \"approved_by\": \"test@company.com\",\n    \"idempotency_key\": \"SF-INV-222-2024-09-21\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/collections/initiate/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"collections",
+								"initiate",
+								""
+							]
+						},
+						"description": "Initiate a new collection request"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Collection Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/collections/status/INV-2024-002/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"collections",
+								"status",
+								"INV-2024-002",
+								""
+							]
+						},
+						"description": "Get status of a collection request"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "A2A Broker APIs",
+			"item": [
+				{
+					"name": "Register Agent",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "X-A2A-Signature",
+								"value": "{{a2a_signature}}",
+								"type": "text"
+							},
+							{
+								"key": "X-A2A-Timestamp",
+								"value": "{{a2a_timestamp}}",
+								"type": "text"
+							},
+							{
+								"key": "X-A2A-Agent-ID",
+								"value": "{{a2a_agent_id}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"agent_name\": \"test_collections_agent_2\",\n    \"agent_type\": \"collections_agent\",\n    \"description\": \"Test Collections Agent for Demo\",\n    \"a2a_endpoint\": \"https://test.com/a2a/\",\n    \"public_key\": \"test-public-key\",\n    \"capabilities\": [\"payment_initiation\", \"invoice_processing\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/a2a/agents/register/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"a2a",
+								"agents",
+								"register",
+								""
+							]
+						},
+						"description": "Register a new A2A agent (Note: Requires A2A signature for production)"
+					},
+					"response": []
+				},
+				{
+					"name": "List Agents",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/a2a/agents/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"a2a",
+								"agents",
+								""
+							]
+						},
+						"description": "List all registered A2A agents"
+					},
+					"response": []
+				},
+				{
+					"name": "Initiate Conversation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"initiator_agent_id\": \"salesforce_collections_agent\",\n    \"target_agent_id\": \"payment_agent\",\n    \"conversation_type\": \"payment_initiation\",\n    \"context_data\": {\n        \"invoice_id\": \"INV-2024-002\",\n        \"amount_cents\": 550000,\n        \"payment_method\": \"ACH\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/a2a/conversations/initiate/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"a2a",
+								"conversations",
+								"initiate",
+								""
+							]
+						},
+						"description": "Initiate A2A conversation between agents (Note: Requires A2A signature for production)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Payment Processing APIs",
+			"item": [
+				{
+					"name": "Create Payment Method",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customer_id\": \"CUST-005\",\n    \"payment_type\": \"ach\",\n    \"bank_account\": {\n        \"account_number\": \"1234567890\",\n        \"routing_number\": \"021000021\",\n        \"account_type\": \"checking\"\n    },\n    \"is_default\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/payment-processing/payment-methods/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"payment-processing",
+								"payment-methods",
+								""
+							]
+						},
+						"description": "Create a new payment method for a customer"
+					},
+					"response": []
+				},
+				{
+					"name": "List Payment Methods",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/payment-processing/payment-methods/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"payment-processing",
+								"payment-methods",
+								""
+							]
+						},
+						"description": "List all payment methods"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Payment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"invoice_id\": \"INV-2024-002\",\n    \"amount_cents\": 550000,\n    \"currency\": \"USD\",\n    \"payment_method_id\": 1,\n    \"description\": \"Payment for invoice INV-2024-002\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/payment-processing/payments/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"payment-processing",
+								"payments",
+								""
+							]
+						},
+						"description": "Create a new payment"
+					},
+					"response": []
+				},
+				{
+					"name": "List Payments",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/payment-processing/payments/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"payment-processing",
+								"payments",
+								""
+							]
+						},
+						"description": "List all payments"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Demo Flow Tests",
+			"item": [
+				{
+					"name": "Demo Step 1 - Get Invoice Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/integration/status/INV-2024-002/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"integration",
+								"status",
+								"INV-2024-002",
+								""
+							]
+						},
+						"description": "Demo Step 1: Judge types '/collect invoice 1234' - Get invoice details"
+					},
+					"response": []
+				},
+				{
+					"name": "Demo Step 2 - Show Invoice in Slack",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/integration/overdue-invoices/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"integration",
+								"overdue-invoices",
+								""
+							]
+						},
+						"description": "Demo Step 2: Collections Agent replies with invoice details and buttons"
+					},
+					"response": []
+				},
+				{
+					"name": "Demo Step 3 - Judge Clicks Yes",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"invoice_id\": \"INV-2024-002\",\n    \"decision\": \"approve\",\n    \"user_id\": \"U1234567890\",\n    \"user_name\": \"john.doe\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/integration/slack/approval/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"integration",
+								"slack",
+								"approval",
+								""
+							]
+						},
+						"description": "Demo Step 3: Judge clicks 'Yes' - Process approval"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
