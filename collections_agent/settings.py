@@ -228,6 +228,7 @@ SALESFORCE_USERNAME = config('SALESFORCE_USERNAME', default='epic.ddc23e8eedd8@o
 SALESFORCE_PASSWORD = config('SALESFORCE_PASSWORD', default='orgfarm1234')
 SALESFORCE_SECURITY_TOKEN = config('SALESFORCE_SECURITY_TOKEN', default='your-security-token-here')
 SALESFORCE_INSTANCE_URL = config('SALESFORCE_INSTANCE_URL', default='https://orgfarm-9b9073bfe6-dev-ed.develop.my.salesforce.com')
+SALESFORCE_BEARER_TOKEN = config('SALESFORCE_BEARER_TOKEN', default='')
 
 # Note: Slack integration is handled by Salesforce team via Agentforce
 

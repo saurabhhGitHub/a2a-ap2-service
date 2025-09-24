@@ -26,9 +26,24 @@ class SalesforceService:
         self.security_token = getattr(settings, 'SALESFORCE_SECURITY_TOKEN', None)
         self.instance_url = getattr(settings, 'SALESFORCE_INSTANCE_URL', None)
         self.webhook_url = getattr(settings, 'SALESFORCE_WEBHOOK_URL', None)
+        self.bearer_token = getattr(settings, 'SALESFORCE_BEARER_TOKEN', None)
         
         self.access_token = None
         self.token_expires_at = None
+    
+    def get_access_token(self) -> str:
+        """
+        Get access token - either from Bearer token or OAuth authentication
+        """
+        if self.bearer_token:
+            logger.info("Using configured Bearer token for Salesforce authentication")
+            return self.bearer_token
+        
+        if not self.access_token:
+            if not self.authenticate():
+                raise Exception("Failed to authenticate with Salesforce")
+        
+        return self.access_token
     
     def authenticate(self) -> bool:
         """
@@ -230,12 +245,12 @@ class SalesforceService:
         Get pre_approved status from Salesforce for a given invoice.
         Returns True if pre_approved is true, False if not, None if error.
         """
-        if not self.access_token:
-            if not self.authenticate():
-                logger.error("Failed to authenticate, cannot get pre-mandate status.")
+        try:
+            access_token = self.get_access_token()
+            if not access_token:
+                logger.error("No valid access token for Salesforce")
                 return None
 
-        try:
             # Query Salesforce to get pre_approved status
             # This assumes you have a custom object or field that stores this information
             # You may need to adjust the SOQL query based on your Salesforce setup
@@ -248,7 +263,7 @@ class SalesforceService:
             soql_query = f"SELECT pre_approved__c FROM Account WHERE Invoice_ID__c = '{invoice_id}' LIMIT 1"
             
             headers = {
-                "Authorization": f"Bearer {self.access_token}",
+                "Authorization": f"Bearer {access_token}",
                 "Content-Type": "application/json"
             }
             
@@ -281,12 +296,12 @@ class SalesforceService:
         """
         Update pre_approved field in Salesforce using the existing InvoiceStatusUpdate endpoint.
         """
-        if not self.access_token:
-            if not self.authenticate():
-                logger.error("Failed to authenticate, cannot update pre-mandate status.")
+        try:
+            access_token = self.get_access_token()
+            if not access_token:
+                logger.error("No valid access token for Salesforce")
                 return False
 
-        try:
             # Use the existing InvoiceStatusUpdate endpoint to update pre_mandate
             update_url = self.webhook_url  # This is the InvoiceStatusUpdate endpoint
             
@@ -297,7 +312,7 @@ class SalesforceService:
             }
 
             headers = {
-                "Authorization": f"Bearer {self.access_token}",
+                "Authorization": f"Bearer {access_token}",
                 "Content-Type": "application/json"
             }
             
