@@ -63,31 +63,34 @@ class SalesforceWebhookView(APIView):
                 idempotency_key=idempotency_key
             ).first()
             
-            if existing_request:
-                # Return existing response
-                if existing_request.invoice:
-                    return Response({
-                        'success': True,
-                        'invoice_id': existing_request.invoice.invoice_id,
-                        'status': existing_request.invoice.status,
-                        'message': 'Collection request already processed',
-                        'estimated_completion': timezone.now() + timedelta(minutes=5)
-                    })
-                else:
-                    return Response({
-                        'success': False,
-                        'error_code': 'PROCESSING_ERROR',
-                        'error_message': existing_request.error_message or 'Collection request is being processed'
-                    }, status=status.HTTP_202_ACCEPTED)
+            if existing_request and existing_request.invoice:
+                # Return existing response only if invoice is linked
+                return Response({
+                    'success': True,
+                    'invoice_id': existing_request.invoice.invoice_id,
+                    'status': existing_request.invoice.status,
+                    'message': 'Collection request already processed',
+                    'estimated_completion': timezone.now() + timedelta(minutes=5)
+                })
+            elif existing_request and not existing_request.invoice:
+                # Collection request exists but no invoice linked - proceed with processing
+                logger.info(f"Collection request {existing_request.idempotency_key} exists but no invoice linked. Proceeding with processing.")
             
             # Create collection request and invoice
             with transaction.atomic():
-                # Create new collection request for each payment attempt
-                collection_request = CollectionRequest.objects.create(
-                    idempotency_key=idempotency_key,
-                    raw_request_data=request.data,
-                    status='processing'
-                )
+                # Use existing collection request if it exists but has no linked invoice
+                if existing_request and not existing_request.invoice:
+                    collection_request = existing_request
+                    collection_request.raw_request_data = request.data
+                    collection_request.status = 'processing'
+                    collection_request.save()
+                else:
+                    # Create new collection request for each payment attempt
+                    collection_request = CollectionRequest.objects.create(
+                        idempotency_key=idempotency_key,
+                        raw_request_data=request.data,
+                        status='processing'
+                    )
                 
                 # Convert amount to cents
                 amount_cents = int(validated_data['amount'] * 100)
